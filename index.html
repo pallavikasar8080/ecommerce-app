@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ecommerce</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: #f3f3f3;
+    }
+
+    header {
+      background: #131921;
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logout {
+      background: red;
+      color: white;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #products {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .product {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px;
+      width: 200px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .product img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+
+    button {
+      background: #007bff;
+      border: none;
+      padding: 8px;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .remove-btn {
+      background: red;
+      margin-left: 10px;
+    }
+
+    .cart {
+      background: white;
+      padding: 15px;
+      margin: 20px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- 🔐 LOGIN PROTECTION -->
+<script>
+  if (!localStorage.getItem("user")) {
+    window.location.href = "login.html";
+  }
+</script>
+
+<!-- HEADER -->
+<header>
+  <h2>🛍 My Store</h2>
+  <button class="logout" onclick="logout()">Logout</button>
+</header>
+
+<!-- PRODUCTS -->
+<div id="products"></div>
+
+<!-- CART -->
+<div class="cart">
+  <h2>🛒 Cart</h2>
+  <div id="cart">No items yet</div>
+</div>
+
+<script>
+  let cart = [];
+
+  // Load products
+  fetch("http://localhost:5000/products")
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById("products");
+      container.innerHTML = "";
+
+      data.forEach(p => {
+        container.innerHTML += `
+          <div class="product">
+            <img src="${p.image}">
+            <h3>${p.name}</h3>
+            <p>₹${p.price}</p>
+            <button onclick='addToCart(${JSON.stringify(p)})'>
+              Add to Cart
+            </button>
+          </div>
+        `;
+      });
+    })
+    .catch(() => {
+      document.getElementById("products").innerHTML =
+        "<h3 style='color:red'>Error loading products</h3>";
+    });
+
+  // Add to cart
+  function addToCart(product) {
+    cart.push(product);
+    displayCart();
+  }
+
+  // Remove item
+  function removeFromCart(index) {
+    cart.splice(index, 1);
+    displayCart();
+  }
+
+  // Display cart
+  function displayCart() {
+    let html = "";
+    let total = 0;
+
+    cart.forEach((item, index) => {
+      total += item.price;
+
+      html += `
+        <p>
+          ${item.name} - ₹${item.price}
+          <button class="remove-btn" onclick="removeFromCart(${index})">
+            ❌
+          </button>
+        </p>
+      `;
+    });
+
+    html += `<h3>Total: ₹${total}</h3>`;
+
+    document.getElementById("cart").innerHTML =
+      cart.length ? html : "No items yet";
+  }
+
+  // Logout
+  function logout() {
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+  }
+</script>
+
+</body>
+</html>
